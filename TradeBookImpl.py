@@ -8,14 +8,11 @@ def calculate_Trade_Profit(stockName):
             tradeTable = tradeBookDao.queryTradeBook_BuyOpenByStockAscPrice(stockName)
             tradeRow = tradeTable[0]
             if(tradeRow[2] == 'B' and tradeRow[7] != 'Closed'):
-                    buyTradeDate = tradeRow[0]
                     buyTradeId = tradeRow[10]
-                    print((buyTradeDate))
                     buyTotalPrice = tradeRow[6]
                     tradeRowsSell = tradeBookDao.queryTradeBook_SellOpenByStockDescDate(stockName)
                     print(len(tradeRowsSell))
                     if(len(tradeRowsSell) >= 1 and tradeRowsSell[0][7] != 'Closed'):
-                        #sellTradeDate = tradeRowsSell[0][0]
                         sellTradeId = tradeRowsSell[0][10]
                         sellPrice = tradeRowsSell[0][4]
                         sellTotalPrice = tradeRowsSell[0][6]
