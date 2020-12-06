@@ -1,0 +1,10 @@
+SELECT TRADE_DATE,
+       STOCK_NAME,
+       TradeType,
+       Qty,
+       Market_Price,
+       Status,
+       SellPrice,
+       Profit
+FROM TRADE_BOOK
+WHERE STOCK_NAME = 'SATIN CREDITCARE NETWORK LIMITED';
