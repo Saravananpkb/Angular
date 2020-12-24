@@ -1,6 +1,94 @@
 import TradeBookDao
 import sqlite3
 
+def queryResults():
+    connection = sqlite3.connect("D:\\Software Program\\Python\\TradeApp\\NSE.db")
+    cursor = connection.cursor()
+    results = cursor.execute("SELECT * FROM RESULTS")
+    data = (results.fetchall())
+    (data)
+    connection.close()
+    return data 
+
+def deleteResults():
+    connection = sqlite3.connect("D:\\Software Program\\Python\\TradeApp\\NSE.db")
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM RESULTS")
+    connection.commit()
+    connection.close() 
+
+def prepareOrderBook(result):
+    if(result['suggestion'] in ['Sell','Buy','BuyShort','BuyOnLoss','BuyShortOnLoss']):
+        order = {}
+        order['ORDER_DATE'] = 2020-10-15
+        order['STOCK_NAME'] = result['symbol']
+        order['OrderType'] = result['suggestion']
+        order['Qty'] = result['quantity']
+        order['MarketPrice'] = result['marketPrice']
+        order['Status'] = ''
+        insertOrderBook(order)
+
+def insertOrderBook(order):
+    connection = sqlite3.connect("D:\\Software Program\\Python\\TradeApp\\NSE.db")
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO ORDER_BOOK VALUES(?,?,?,?,?,?)",(order['ORDER_DATE'], order['STOCK_NAME'],order['OrderType'], order['Qty'], order['MarketPrice'], order['Status']))
+    connection.commit()
+    connection.close()
+
+def insertTradeDetail(result):
+    resultTable = dbDao.queryResultsByStock(result['symbol'])
+    if(len(resultTable)>0):
+        resultRow = resultTable[0]
+        print("resultRow {}".format(resultRow))
+        trade = Trade()
+        
+        orderType = resultRow[12]
+        orderPrice = resultRow[13]
+        orderQty = resultRow[14]
+        marketValue = orderQty * orderPrice
+        if(orderType == 'B'):
+            netAmount = marketValue + (marketValue * 0.007)
+        elif(orderType == 'S'):
+            netAmount = marketValue - (marketValue * 0.007)
+        print("orderType {}".format(orderType))
+        print("orderPrice {}".format(orderPrice))
+        print("orderQty {}".format(orderQty))
+        print("marketValue {}".format(marketValue))
+        print("marketValue {}".format(marketValue))
+
+        trade.tradeType = orderType
+        trade.tradePrice = orderPrice 
+        trade.tradeQty = orderQty
+        trade.tradeValue = marketValue
+        trade.netValue = netAmount
+        TradeBookDao.insertTrade(trade)
+
+def calculateSellProfit_old(stockName,marketPrice):
+    tradeTable = TradeBookDao.queryTradeBook_2(stockName)
+    buyPriceList = []
+    for tradeRow in tradeTable:
+        if(tradeRow[2] == 'B' and tradeRow[7] != 'Closed'):
+            buyPriceList.append(tradeRow[4])
+    if(buyPriceList):
+        buyPrice = min(buyPriceList)
+    for tradeRow in tradeTable:
+        if(tradeRow[2] == 'B' and tradeRow[7] != 'Closed' and tradeRow[4] == buyPrice):
+            qty = tradeRow[3]
+            charges = round(((tradeRow[5] + tradeRow[6]) * 2))
+            netProfit = calculateProfit(buyPrice,marketPrice,qty,charges)
+            print("Net Sell Profit: {}".format(netProfit))
+            sellInfo = {'buyPrice':buyPrice,'sellProfit':netProfit}
+            return sellInfo
+
+def insertResults(result):
+    connection = sqlite3.connect("D:\\Software Program\\Python\\TradeApp\\NSE.db")
+    cursor = connection.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS RESULTS(High3Days DOUBLE, Low3Days DOUBLE, Symbol TEXT, Suggestion TEXT, MarketPrice DOUBLE, DaysHigh DOUBLE, SellProfit DOUBLE, DaysLow DOUBLE, BuyProfit DOUBLE, Price_Per DOUBLE,  Qty DOUBLE, UR_Profit DOUBLE,  BuyPrice DOUBLE, Low10Day DOUBLE, High10Day DOUBLE, Profit_HL DOUBLE, Remarks TEXT)")
+    connection.commit()
+    cursor.execute("INSERT INTO RESULTS VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",(result['High3Days'], result['Low3Days'],result['symbol'], result['suggestion'], result['marketPrice'], result['daysHigh'], result['sellProfit'],  result['daysLow'], result['profit_10DH_Mkt'], result['price_per'], result['quantity'], result['urProfit'], result['buyPrice'], result['low10Day'], result['high10Day'], result['profit_10DH_L'],''))
+    connection.commit()
+    connection.close()
+
 def calculateBuyProfit(buyPrice,sellPrice):
    qty = 5000/buyPrice
    unitProfit = sellPrice - buyPrice

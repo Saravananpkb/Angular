@@ -5,7 +5,7 @@ import sqlite3
 def getStocks():
     connection = sqlite3.connect("NSE.db")
     cursor = connection.cursor()
-    results = cursor.execute("SELECT STOCK_SYMBOL FROM STOCKS")
+    results = cursor.execute("SELECT StockSymbol FROM Stock_Summary")
     stocks = results.fetchall()
     stockList = []
     for stock in stocks:
@@ -24,7 +24,7 @@ class NseSpider(scrapy.Spider):
             print(stock)
             #url = 'https://www1.nseindia.com/live_market/dynaContent/live_watch/get_quote/getHistoricalData.jsp?symbol='+stock+'&series=EQ&fromDate=undefined&toDate=undefined&datePeriod=3day'
             #https://www.nseindia.com/api/quote-equity?symbol=HDFCBANK
-            url = 'https://www1.nseindia.com/live_market/dynaContent/live_watch/get_quote/getHistoricalData.jsp?symbol='+stock+'&series=EQ&fromDate=29-Nov-2020&toDate=10-Dec-2020&undefined&hiddDwnld=false'
+            url = 'https://www1.nseindia.com/live_market/dynaContent/live_watch/get_quote/getHistoricalData.jsp?symbol='+stock+'&series=EQ&fromDate=20-Dec-2020&toDate=31-Dec-2020&undefined&hiddDwnld=false'
             print(url)
             yield scrapy.Request(url,callback=self.parse, headers={
                  'User-Agent':'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
